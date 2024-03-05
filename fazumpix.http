@@ -1,0 +1,6 @@
+@fazumpix_HostAddress = http://localhost:5128
+
+GET {{fazumpix_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
