@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Health.Controllers;
+namespace FazUmPix.Controllers;
 
 [ApiController]
 [Route("[controller]")]
