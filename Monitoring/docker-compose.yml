@@ -5,6 +5,7 @@ services:
     command:
       - "--path.rootfs=/host"
     pid: host
+    network_mode: host
     ports:
       - 9100:9100
     restart: unless-stopped
@@ -14,10 +15,22 @@ services:
   prometheus:
     container_name: prometheus
     image: prom/prometheus:latest
+    network_mode: host
     ports:
       - 9090:9090
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  postgres-exporter:
+      image: quay.io/prometheuscommunity/postgres-exporter:latest
+      container_name: postgres-exporter
+      network_mode: host
+      ports:
+        - 9187:9187
+      environment:
+        - DATA_SOURCE_URI=192.168.1.14:5432/dev?sslmode=disable
+        - DATA_SOURCE_USER=postgres
+        - DATA_SOURCE_PASS=postgres
 
   grafana:
     container_name: grafana

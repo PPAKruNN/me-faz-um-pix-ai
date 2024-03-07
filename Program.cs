@@ -1,3 +1,5 @@
+using Prometheus;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -16,10 +18,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Collect metrics from app 
+app.UseMetricServer(); 
+app.UseHttpMetrics(options => 
+{
+	options.AddCustomLabel("host", context => context.Request.Host.Host);
+});
+
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Expose metrics
+app.MapMetrics(); 
 
 app.Run();
