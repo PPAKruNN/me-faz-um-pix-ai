@@ -1,12 +1,15 @@
-using System.Security.Cryptography;
 
 namespace FazUmPix.Models;
 
 public class User {
+
+    public required string Id { get; set; }
     public required string CPF { get; set; }
     public required string Name { get; set; }
-    public User(string CPF, string Name) {
-        this.CPF = CPF;
-        this.Name = Name;
+    
+    public List<PaymentProviderAccount>? Accounts { get; }
+    public User(string cpf, string name) {
+        this.CPF = cpf;
+        this.Name = name;
     }
 }
