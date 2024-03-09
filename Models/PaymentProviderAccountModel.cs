@@ -1,11 +1,16 @@
 
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace FazUmPix.Models;
 
 public class PaymentProviderAccount
 {
-    public required uint Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public uint Id { get; set; }
     public required int Agency { get; set; }
-    public required uint Number { get; set; }
+    public required int Number { get; set; }
 
     public required uint UserId { get; set; }
     public required uint PaymentProviderId { get; set; }
