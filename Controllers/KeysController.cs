@@ -35,7 +35,25 @@ public class KeysController(KeysService keysService) : ControllerBase
     }
 
     [HttpGet("/Keys/{Type}/{Value}")]
+    public async Task<IActionResult> Read([FromHeader] string Authorization, [FromRoute] ReadKeyInputDTO dto)
     {
+        TokenDTO token;
+        if (Authorization == null) return Unauthorized("No authorization header");
+        else
+        {
+            try
+            {
+                var TokenString = Authorization.Split(" ")[1];
+                token = new TokenDTO { Token = Guid.Parse(TokenString) };
+            }
+            catch (Exception)
+            {
+                return UnprocessableEntity("Invalid GUID format");
+            }
+        }
+
+
+        ReadKeyOutputDTO key = await keysService.ReadKey(dto, token);
 
         return Ok(key);
     }

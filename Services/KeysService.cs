@@ -70,7 +70,31 @@ public class KeysService(PaymentProviderAccountRepository paymentProviderAccount
         return newKey;
     }
 
-        return key;
+    public async Task<ReadKeyOutputDTO> ReadKey(ReadKeyInputDTO dto, TokenDTO token)
+    {
+        PixKey? Key = await keysRepository.ReadByKeyAndProviderIncludingBankAndUser(token.Token, dto.Type, dto.Value);
+        if (Key == null) throw new PixKeyNotFoundException("Pix key not found");
+
+        string maskedCpf = UserPolicies.MaskCpf(Key.Account.User.CPF);
+
+        MaskedUserDTO User = new MaskedUserDTO { Name = Key.Account.User.Name, MaskedCpf = maskedCpf };
+        PixKeyDTO PixKey = new PixKeyDTO { Type = Key.Type, Value = Key.Value };
+        CompleteAccountDTO Account = new CompleteAccountDTO
+        {
+            BankName = Key.Account.Bank.Name,
+            BankId = Key.Account.Bank.Token.ToString(),
+            Number = Key.Account.Number.ToString(),
+            Agency = Key.Account.Agency.ToString()
+        };
+
+        ReadKeyOutputDTO resultOutput = new ReadKeyOutputDTO
+        {
+            Key = PixKey,
+            Account = Account,
+            User = User
+        };
+
+        return resultOutput;
     }
 }
 

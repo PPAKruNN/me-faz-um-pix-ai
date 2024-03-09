@@ -34,32 +34,44 @@ public class KeysRepository(AppDbContext context)
 
         return count;
     }
+
+
+    public async Task<PixKey?> ReadByKeyAndProviderIncludingBankAndUser(Guid paymentProviderToken, string type, string value)
+    {
+        var Key =
+        await context.PixKey
+            .Where(k => k.Type == type 
+            && k.Value == value
+            && k.Account.Bank.Token == paymentProviderToken)
             .Include(k => k.Account)
             .Include(k => k.Account.Bank)
             .Include(k => k.Account.User)
             .FirstOrDefaultAsync();
 
-        if (Key == null) throw new PixKeyNotFoundException("Key not found");
+        return Key;
+    }
 
-        string maskedCpf = UserPolicies.MaskCpf(Key.Account.User.CPF);
+    public async Task<CreateKeyOutputDTO> Create(CreateKeyInputDTO dto, PaymentProvider psp, User user, PaymentProviderAccount account)
+    {
 
-        MaskedUserDTO User = new MaskedUserDTO { Name = Key.Account.User.Name, MaskedCpf = maskedCpf };
-        PixKeyDTO PixKey = new PixKeyDTO { Type = Key.Type, Value = Key.Value };
-        CompleteAccountDTO Account = new CompleteAccountDTO
+        PixKey newKey = new PixKey
         {
-            BankName = Key.Account.Bank.Name,
-            BankId = Key.Account.Bank.Id.ToString(),
-            Number = Key.Account.Number.ToString(),
-            Agency = Key.Account.Agency.ToString()
+            Account = account,
+            PaymentProviderAccountId = account.Id,
+            Type = dto.Key.Type,
+            Value = dto.Key.Value
         };
-
-        ReadKeyOutputDTO result = new ReadKeyOutputDTO
+        
+        await context.PixKey.AddAsync(newKey);
+        await context.SaveChangesAsync();
+        
+        CreateKeyOutputDTO output = new CreateKeyOutputDTO
         {
-            Key = PixKey,
-            Account = Account,
-            User = User
+            Type = newKey.Type,
+            Value = newKey.Value
         };
-
-        return result;
+        
+        
+        return output;
     }
 }
