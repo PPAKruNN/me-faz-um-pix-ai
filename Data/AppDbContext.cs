@@ -36,7 +36,7 @@ public class AppDbContext : DbContext
 
         builder.Entity<PaymentProvider>()
             .HasMany(p => p.Accounts)
-            .WithOne(a => a.PaymentProvider)
+            .WithOne(a => a.Bank)
             .HasForeignKey(a => a.PaymentProviderId);
     }
 }
