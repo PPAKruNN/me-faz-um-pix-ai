@@ -33,7 +33,7 @@ public class AppDbContext : DbContext
             .HasMany(a => a.PixKeys)
             .WithOne(p => p.Account)
             .HasForeignKey(p => p.PaymentProviderAccountId);
-
+        
         builder.Entity<PaymentProvider>()
             .HasMany(p => p.Accounts)
             .WithOne(a => a.Bank)

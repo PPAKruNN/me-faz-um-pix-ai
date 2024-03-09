@@ -1,18 +1,39 @@
 using FazUmPix.Data;
 using FazUmPix.DTOs;
-using FazUmPix.Exceptions;
-using FazUmPix.Policies;
+using FazUmPix.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace FazUmPix.Repositories;
 
 public class KeysRepository(AppDbContext context)
 {
-    public async Task<ReadKeyOutputDTO> Read(ReadKeyInputDTO dto)
+    public async Task<PixKey?> Read(string type, string value)
     {
         var Key =
         await context.PixKey
-            .Where(k => k.Type == dto.Type && k.Value == dto.Value)
+            .Where(k => k.Type == type && k.Value == value)
+            .FirstOrDefaultAsync();
+
+        return Key;
+    }
+
+    public async Task<int> CountByUser(uint userId)
+    {
+        var count = await context.PixKey
+            .Where(k => k.Account.UserId == userId)
+            .CountAsync();
+
+        return count;
+    }
+
+    public async Task<int> CountByUserAndPaymentProvider(uint paymentProviderId, uint userId)
+    {
+        var count = await context.PixKey
+            .Where(k => k.Account.Bank.Id == paymentProviderId && k.Account.UserId == userId)
+            .CountAsync();
+
+        return count;
+    }
             .Include(k => k.Account)
             .Include(k => k.Account.Bank)
             .Include(k => k.Account.User)

@@ -1,5 +1,6 @@
 using FazUmPix.Data;
 using FazUmPix.Middlewares;
+using FazUmPix.Policies;
 using FazUmPix.Repositories;
 using FazUmPix.Services;
 using Prometheus;
@@ -16,6 +17,13 @@ builder.Services.AddScoped<KeysService>();
 // Repository / Database
 builder.Services.AddScoped<AppDbContext>();
 builder.Services.AddScoped<KeysRepository>();
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<PaymentProviderRepository>();
+builder.Services.AddScoped<PaymentProviderAccountRepository>();
+
+// Policies
+builder.Services.AddScoped<KeysPolicies>();
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
