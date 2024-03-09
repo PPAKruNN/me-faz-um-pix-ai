@@ -1,5 +1,7 @@
 using FazUmPix.Data;
 using FazUmPix.Middlewares;
+using FazUmPix.Repositories;
+using FazUmPix.Services;
 using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// Services
+builder.Services.AddScoped<KeysService>();
+
+// Repository / Database
+builder.Services.AddScoped<AppDbContext>();
+builder.Services.AddScoped<KeysRepository>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
