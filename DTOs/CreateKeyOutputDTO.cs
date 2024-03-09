@@ -7,8 +7,8 @@ namespace FazUmPix.DTOs
     {
         [Required]
         [RegularExpression("Random|CPF|Email|Phone")]
-        public string Type { get; set; }
+        public required string Type { get; set; }
         [Required]
-        public string Value { get; set; }
+        public required string Value { get; set; }
     }
 }
