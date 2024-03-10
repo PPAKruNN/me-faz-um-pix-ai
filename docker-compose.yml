@@ -1,0 +1,15 @@
+volumes:
+  databasevolume:
+
+services:
+  database:
+    image: postgres
+    container_name: postgresql
+    network_mode: host
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes: 
+      - 'databasevolume:/var/lib/postgresql/data'
