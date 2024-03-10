@@ -12,6 +12,7 @@ public class KeysService(PaymentProviderAccountRepository paymentProviderAccount
 {
     public async Task<CreateKeyOutputDTO> CreateKey(CreateKeyInputDTO dto, TokenDTO token)
     {
+        // Initial verifications 
         PaymentProvider? PaymentProvider = await paymentProviderRepository.ReadByToken(token.Token);
         if (PaymentProvider == null) throw new InvalidPaymentProviderException("The payment provider token provided is invalid!");
 
@@ -22,6 +23,7 @@ public class KeysService(PaymentProviderAccountRepository paymentProviderAccount
         if (user == null) throw new UserNotFoundException("User not found");
 
         // Validate the key values based on Types.
+        // Note that key is unique here.
         switch (dto.Key.Type) {
             case "CPF": 
                 bool isValidCpf = Regex.IsMatch(dto.Key.Value, @"^\d{11}$");
@@ -49,20 +51,20 @@ public class KeysService(PaymentProviderAccountRepository paymentProviderAccount
                 break;
         };
 
-        // Mudar o nome desse método:
-        // Adicionar validações para cada tipo de Chave.
-
+        // Account Validation
         PaymentProviderAccount? account = 
             await paymentProviderAccountRepository.ReadByAccountAndProvider(dto.Account, PaymentProvider);
         
         AccountPolicies.CanModifyAccount(account, user);
 
+        // Key generation limit policies.
         int pspKeyCount = await keysRepository.CountByUserAndPaymentProvider(PaymentProvider.Id, user.Id);
         KeysPolicies.MaxKeysPerPaymentProvider(pspKeyCount);
 
         int userKeyCount = await keysRepository.CountByUser(user.Id);
         KeysPolicies.MaxKeysPerUser(userKeyCount);
 
+        // Create key (and account if needed)
         if (account == null) account = await paymentProviderAccountRepository.Create(dto, PaymentProvider, user);
 
         CreateKeyOutputDTO newKey = await keysRepository.Create(dto, PaymentProvider, user, account);
