@@ -3,6 +3,7 @@ using System;
 using FazUmPix.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace fazumpix.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240310040641_create_BTree_index_on_UserCPF_PaymentProviderToken_and_PixKeyType")]
+    partial class create_BTree_index_on_UserCPF_PaymentProviderToken_and_PixKeyType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,8 +100,8 @@ namespace fazumpix.Migrations
 
                     b.HasIndex("PaymentProviderAccountId");
 
-                    b.HasIndex("Value")
-                        .HasDatabaseName("IX_PixKey_Value");
+                    b.HasIndex("Type")
+                        .HasDatabaseName("IX_PixKey_Type");
 
                     b.ToTable("PixKey");
                 });

@@ -9,7 +9,9 @@ public class AppDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // Temporary hardcoded connection string. (I was facing a bug, needed to do this to continue progressing).
-        optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=fazumpix");
+        optionsBuilder
+            .UseNpgsql("Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=fazumpix")
+            .LogTo(Console.WriteLine, LogLevel.Information);
     }
 
     public DbSet<User> User { get; set; }
@@ -38,6 +40,18 @@ public class AppDbContext : DbContext
             .HasMany(p => p.Accounts)
             .WithOne(a => a.Bank)
             .HasForeignKey(a => a.PaymentProviderId);
+
+        builder.Entity<PixKey>()
+                .HasIndex(p => p.Value)
+                .HasDatabaseName("IX_PixKey_Value");
+
+        builder.Entity<PaymentProvider>()
+                .HasIndex(p => p.Token)
+                .HasDatabaseName("IX_PaymentProvider_Token");
+
+        builder.Entity<User>()
+            .HasIndex(u => u.CPF)
+            .HasDatabaseName("IX_User_CPF");
     }
 }
 
