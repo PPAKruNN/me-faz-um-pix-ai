@@ -24,7 +24,6 @@ builder.Services.AddScoped<PaymentProviderAccountRepository>();
 // Policies
 builder.Services.AddScoped<KeysPolicies>();
 
-
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -34,27 +33,27 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
 
 // Collect metrics from app 
-app.UseMetricServer(); 
-app.UseHttpMetrics(options => 
+app.UseMetricServer();
+app.UseHttpMetrics(options =>
 {
-	options.AddCustomLabel("host", context => context.Request.Host.Host);
+  options.AddCustomLabel("host", context => context.Request.Host.Host);
 });
 
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+// app.UseAuthorization();
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.MapControllers();
 
 // Expose metrics
-app.MapMetrics(); 
+app.MapMetrics();
 
 app.Run();
