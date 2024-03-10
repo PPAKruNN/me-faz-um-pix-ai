@@ -2,8 +2,8 @@
 using FazUmPix.DTOs;
 using FazUmPix.Models;
 using FazUmPix.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace FazUmPix.Controllers;
 
@@ -31,7 +31,7 @@ public class KeysController(KeysService keysService) : ControllerBase
 
         CreateKeyOutputDTO key = await keysService.CreateKey(dto, token);
 
-        return Ok(key);
+        return CreatedAtAction(null, null, key);
     }
 
     [HttpGet("/Keys/{Type}/{Value}")]
