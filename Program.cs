@@ -1,8 +1,12 @@
+using FazUmPix.Authentication;
 using FazUmPix.Data;
 using FazUmPix.Middlewares;
 using FazUmPix.Policies;
 using FazUmPix.Repositories;
 using FazUmPix.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+  options.UseNpgsql(builder.Configuration.GetConnectionString("Database"));
+});
 
 // Services
 builder.Services.AddScoped<KeysService>();
@@ -24,9 +33,40 @@ builder.Services.AddScoped<PaymentProviderAccountRepository>();
 // Policies
 builder.Services.AddScoped<KeysPolicies>();
 
+// Authentication
+builder.Services.AddAuthentication("BearerAuthentication")
+  .AddScheme<AuthenticationSchemeOptions, BearerAuthenticationHandler>("BearerAuthentication", null);
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(
+  options =>
+  {
+    options.SwaggerDoc("v1", new() { Title = "FazUmPix", Version = "v1" });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+      Name = "Authorization",
+      Type = SecuritySchemeType.Http,
+      Scheme = "Bearer",
+      In = ParameterLocation.Header,
+      Description = "Bearer Authorization header"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+      {
+        new OpenApiSecurityScheme
+        {
+          Reference = new OpenApiReference
+          {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+          }
+        },
+        Array.Empty<string>()
+      }
+    });
+  }
+);
 
 var app = builder.Build();
 
@@ -47,7 +87,7 @@ app.UseHttpMetrics(options =>
 
 app.UseHttpsRedirection();
 
-// app.UseAuthorization();
+app.UseAuthorization();
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
