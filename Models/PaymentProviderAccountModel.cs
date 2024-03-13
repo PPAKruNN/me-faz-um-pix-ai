@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FazUmPix.Models;
 
-public class PaymentProviderAccount
+public class PaymentProviderAccount : BaseModel
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -16,6 +16,6 @@ public class PaymentProviderAccount
     public required uint PaymentProviderId { get; set; }
 
     public required User User { get; set; }
-    public required PaymentProvider Bank { get; set; }
+    public required PaymentProvider PaymentProvider { get; set; }
     public List<PixKey>? PixKeys { get; }
 }

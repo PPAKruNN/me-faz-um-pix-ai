@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FazUmPix.Models;
 
-public class User
+public class User : BaseModel
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

@@ -3,21 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FazUmPix.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext() {}
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        // Temporary hardcoded connection string. (I was facing a bug, needed to do this to continue progressing).
-        optionsBuilder
-            .UseNpgsql("Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=fazumpix")
-            .LogTo(Console.WriteLine, LogLevel.Information);
-    }
-
     public DbSet<User> User { get; set; }
-    public DbSet<PixKey> PixKey { get; set; } 
-    public DbSet<PaymentProvider> PaymentProvider { get; set; } 
-    public DbSet<PaymentProviderAccount> PaymentProviderAccount { get; set; } 
+    public DbSet<PixKey> PixKey { get; set; }
+    public DbSet<PaymentProvider> PaymentProvider { get; set; }
+    public DbSet<PaymentProviderAccount> PaymentProviderAccount { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -35,10 +26,10 @@ public class AppDbContext : DbContext
             .HasMany(a => a.PixKeys)
             .WithOne(p => p.Account)
             .HasForeignKey(p => p.PaymentProviderAccountId);
-        
+
         builder.Entity<PaymentProvider>()
             .HasMany(p => p.Accounts)
-            .WithOne(a => a.Bank)
+            .WithOne(a => a.PaymentProvider)
             .HasForeignKey(a => a.PaymentProviderId);
 
         builder.Entity<PixKey>()
@@ -52,6 +43,37 @@ public class AppDbContext : DbContext
         builder.Entity<User>()
             .HasIndex(u => u.CPF)
             .HasDatabaseName("IX_User_CPF");
+    }
+    public override int SaveChanges()
+    {
+        AddTimestamps();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        AddTimestamps();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+
+    private void AddTimestamps()
+    {
+        var entities = ChangeTracker.Entries()
+            .Where(x => x.Entity is BaseModel && (x.State == EntityState.Added || x.State == EntityState.Modified));
+
+        var now = DateTime.UtcNow;
+
+        foreach (var entity in entities)
+        {
+
+            if (entity.State == EntityState.Added)
+            {
+                ((BaseModel)entity.Entity).CreatedAt = now;
+            }
+
+            ((BaseModel)entity.Entity).UpdatedAt = now;
+        }
     }
 }
 

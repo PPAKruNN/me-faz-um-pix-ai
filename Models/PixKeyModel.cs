@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FazUmPix.Models;
 
-public class PixKey
+public class PixKey : BaseModel
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

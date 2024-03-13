@@ -4,7 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FazUmPix.Models;
 
-public class PaymentProvider {
+public class PaymentProvider : BaseModel
+{
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public uint Id { get; set; }
