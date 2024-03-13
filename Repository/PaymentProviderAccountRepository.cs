@@ -27,7 +27,7 @@ public class PaymentProviderAccountRepository(AppDbContext context)
                 Number = int.Parse(dto.Account.Number),
                 UserId = user.Id,
                 PaymentProviderId = bank.Id,
-                Bank = bank,
+                PaymentProvider = bank,
                 User = user
             };
 

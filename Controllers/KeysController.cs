@@ -1,7 +1,9 @@
 
+using System.Security.Claims;
 using FazUmPix.DTOs;
 using FazUmPix.Models;
 using FazUmPix.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,48 +14,29 @@ namespace FazUmPix.Controllers;
 public class KeysController(KeysService keysService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> Create([FromHeader] string Authorization, [FromBody] CreateKeyInputDTO dto)
+    [Authorize]
+    public async Task<IActionResult> Create([FromBody] CreateKeyInputDTO dto)
     {
-        TokenDTO token;
-        if (Authorization == null) return Unauthorized("No authorization header");
-        else
-        {
-            try
-            {
-                var TokenString = Authorization.Split(" ")[1];
-                token = new TokenDTO { Token = Guid.Parse(TokenString) };
-            }
-            catch (Exception)
-            {
-                return UnprocessableEntity("Invalid GUID format");
-            }
-        }
+        Guid tokenStr = Guid.Parse(HttpContext.User.Claims.First(c => c.Type == ClaimTypes.Authentication).Value);
+        string paymentProviderSerialized = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.UserData).Value;
 
-        CreateKeyOutputDTO key = await keysService.CreateKey(dto, token);
+        TokenDTO token = new TokenDTO { Token = tokenStr };
+
+        CreateKeyOutputDTO key = await keysService.CreateKey(dto, token, paymentProviderSerialized);
 
         return CreatedAtAction(null, null, key);
     }
 
     [HttpGet("/Keys/{Type}/{Value}")]
-    public async Task<IActionResult> Read([FromHeader] string Authorization, [FromRoute] ReadKeyInputDTO dto)
+    [Authorize]
+    public async Task<IActionResult> Read([FromRoute] ReadKeyInputDTO dto)
     {
-        TokenDTO token;
-        if (Authorization == null) return Unauthorized("No authorization header");
-        else
-        {
-            try
-            {
-                var TokenString = Authorization.Split(" ")[1];
-                token = new TokenDTO { Token = Guid.Parse(TokenString) };
-            }
-            catch (Exception)
-            {
-                return UnprocessableEntity("Invalid GUID format");
-            }
-        }
+        Guid tokenStr = Guid.Parse(HttpContext.User.Claims.First(c => c.Type == ClaimTypes.Authentication).Value);
+        string paymentProviderSerialized = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.UserData).Value;
 
+        TokenDTO token = new TokenDTO { Token = tokenStr };
 
-        ReadKeyOutputDTO key = await keysService.ReadKey(dto, token);
+        ReadKeyOutputDTO key = await keysService.ReadKey(dto, token, paymentProviderSerialized);
 
         return Ok(key);
     }

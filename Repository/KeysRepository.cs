@@ -29,7 +29,7 @@ public class KeysRepository(AppDbContext context)
     public async Task<int> CountByUserAndPaymentProvider(uint paymentProviderId, uint userId)
     {
         var count = await context.PixKey
-            .Where(k => k.Account.Bank.Id == paymentProviderId && k.Account.UserId == userId)
+            .Where(k => k.Account.PaymentProvider.Id == paymentProviderId && k.Account.UserId == userId)
             .CountAsync();
 
         return count;
@@ -40,11 +40,11 @@ public class KeysRepository(AppDbContext context)
     {
         var Key =
         await context.PixKey
-            .Where(k => k.Type == type 
+            .Where(k => k.Type == type
             && k.Value == value
-            && k.Account.Bank.Token == paymentProviderToken)
+            && k.Account.PaymentProvider.Token == paymentProviderToken)
             .Include(k => k.Account)
-            .Include(k => k.Account.Bank)
+            .Include(k => k.Account.PaymentProvider)
             .Include(k => k.Account.User)
             .FirstOrDefaultAsync();
 
@@ -61,17 +61,17 @@ public class KeysRepository(AppDbContext context)
             Type = dto.Key.Type,
             Value = dto.Key.Value
         };
-        
+
         await context.PixKey.AddAsync(newKey);
         await context.SaveChangesAsync();
-        
+
         CreateKeyOutputDTO output = new CreateKeyOutputDTO
         {
             Type = newKey.Type,
             Value = newKey.Value
         };
-        
-        
+
+
         return output;
     }
 }
