@@ -1,15 +1,43 @@
 volumes:
   databasevolume:
 
+networks:
+  fazumpix:
+    name: fazumpix
+    driver: bridge
+
 services:
   database:
     image: postgres
     container_name: postgresql
-    network_mode: host
+    networks:
+      - fazumpix
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
-      - '5432:5432'
-    volumes: 
-      - 'databasevolume:/var/lib/postgresql/data'
+      - "5432:5432"
+    volumes:
+      - "databasevolume:/var/lib/postgresql/data"
+
+  api:
+    image: fazumpix-api
+    build: .
+    container_name: api
+    ports:
+      - "5000:5000"
+    networks:
+      - fazumpix
+    depends_on:
+      - database
+    environment:
+      - CONNECTIONSTRINGS__DATABASE=Host=database;Port=5432;Username=postgres;Password=postgres;Database=fazumpix"
+
+  migrations:
+    image: fazumpix-migrations
+    build:
+      context: .
+      dockerfile: dockerfile.migrations
+    container_name: migrations
+    environment:
+      - CONNECTIONSTRINGS__DATABASE=Host=database;Port=5432;Username=postgres;Password=postgres;Database=fazumpix"
