@@ -1,5 +1,7 @@
 volumes:
   databasevolume:
+  rabbitmqvolume:
+
 
 networks:
   fazumpix:
@@ -20,6 +22,20 @@ services:
     volumes:
       - "databasevolume:/var/lib/postgresql/data"
 
+  queue:
+    image: rabbitmq:3.13-management
+    container_name: queue
+    networks:
+      - fazumpix
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbit
+      - RABBITMQ_DEFAULT_PASS=mq
+    volumes:
+      - rabbitmqvolume:/var/lib/rabbitmq
+
   api:
     image: fazumpix-api
     build: .
@@ -31,13 +47,15 @@ services:
     depends_on:
       - database
     environment:
-      - CONNECTIONSTRINGS__DATABASE=Host=database;Port=5432;Username=postgres;Password=postgres;Database=fazumpix"
-
-  migrations:
-    image: fazumpix-migrations
-    build:
-      context: .
-      dockerfile: dockerfile.migrations
-    container_name: migrations
-    environment:
-      - CONNECTIONSTRINGS__DATABASE=Host=database;Port=5432;Username=postgres;Password=postgres;Database=fazumpix"
+      - CONNECTIONSTRINGS__DATABASE=Host=database;Port=5432;Username=postgres;Password=postgres;Database=fazumpix
+  #
+  # TODO: Fix migrations
+  #
+  # migrations:
+  #   image: fazumpix-migrations
+  #   build:
+  #     context: .
+  #     dockerfile: dockerfile.migrations
+  #   container_name: migrations
+  #   environment:
+  #     - CONNECTIONSTRINGS__DATABASE=Host=database;Port=5432;Username=postgres;Password=postgres;Database=fazumpix
