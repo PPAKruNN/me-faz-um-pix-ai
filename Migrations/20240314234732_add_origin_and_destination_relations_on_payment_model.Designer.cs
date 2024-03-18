@@ -3,6 +3,7 @@ using System;
 using FazUmPix.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace fazumpix.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240314234732_add_origin_and_destination_relations_on_payment_model")]
+    partial class add_origin_and_destination_relations_on_payment_model
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -206,19 +209,19 @@ namespace fazumpix.Migrations
             modelBuilder.Entity("FazUmPix.Models.Payment", b =>
                 {
                     b.HasOne("FazUmPix.Models.PaymentProviderAccount", "DestinationPaymentProviderAccount")
-                        .WithMany("DestinationPayments")
+                        .WithMany()
                         .HasForeignKey("DestinationPaymentProviderAccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FazUmPix.Models.PaymentProviderAccount", "OriginPaymentProviderAccount")
-                        .WithMany("OriginPayments")
+                        .WithMany()
                         .HasForeignKey("OriginPaymentProviderAccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FazUmPix.Models.PixKey", "PixKey")
-                        .WithMany("Payments")
+                        .WithMany()
                         .HasForeignKey("PixKeyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -267,16 +270,7 @@ namespace fazumpix.Migrations
 
             modelBuilder.Entity("FazUmPix.Models.PaymentProviderAccount", b =>
                 {
-                    b.Navigation("DestinationPayments");
-
-                    b.Navigation("OriginPayments");
-
                     b.Navigation("PixKeys");
-                });
-
-            modelBuilder.Entity("FazUmPix.Models.PixKey", b =>
-                {
-                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("FazUmPix.Models.User", b =>

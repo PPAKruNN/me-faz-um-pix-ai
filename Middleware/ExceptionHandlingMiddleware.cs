@@ -36,7 +36,10 @@ public class ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionH
       InvalidCpfException => new ExceptionResponse(HttpStatusCode.UnprocessableEntity, exception.Message),
       InvalidKeyFormatException => new ExceptionResponse(HttpStatusCode.UnprocessableEntity, exception.Message),
       UnexpectedMissingPaymentProviderException => new ExceptionResponse(HttpStatusCode.InternalServerError, "Internal server error. Please retry later."),
-
+      AccountCannotTransferToItselfException => new ExceptionResponse(HttpStatusCode.BadRequest, exception.Message),
+      PaymentProviderAccountNotFoundException => new ExceptionResponse(HttpStatusCode.NotFound, exception.Message),
+      PaymentRepeatedException => new ExceptionResponse(HttpStatusCode.Conflict, exception.Message),
+      PaymentNotFoundException => new ExceptionResponse(HttpStatusCode.NotFound, exception.Message),
 
       _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "Internal server error. Please retry later.")
     };

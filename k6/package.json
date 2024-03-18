@@ -6,6 +6,7 @@
   "scripts": {
     "test:post": "k6 run ./tests/postKeys.js",
     "test:get": "k6 run ./tests/getKeys.js",
+    "test:payments": "k6 run ./tests/postPayments.js",
     "seed": "node seed.js"
   },
   "type": "module",

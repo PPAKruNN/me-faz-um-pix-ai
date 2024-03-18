@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PixKey> PixKey { get; set; }
     public DbSet<PaymentProvider> PaymentProvider { get; set; }
     public DbSet<PaymentProviderAccount> PaymentProviderAccount { get; set; }
+    public DbSet<Payment> Payment { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -16,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         builder.Entity<PaymentProviderAccount>().HasKey(p => p.Id);
         builder.Entity<PixKey>().HasKey(p => p.Id);
         builder.Entity<PaymentProvider>().HasKey(p => p.Id);
+        builder.Entity<Payment>().HasKey(p => p.Id);
 
         builder.Entity<User>()
             .HasMany(u => u.Accounts)
@@ -26,6 +28,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasMany(a => a.PixKeys)
             .WithOne(p => p.Account)
             .HasForeignKey(p => p.PaymentProviderAccountId);
+
+
+        builder.Entity<Payment>()
+            .HasOne(p => p.DestinationPaymentProviderAccount)
+            .WithMany(a => a.DestinationPayments)
+            .HasForeignKey(p => p.DestinationPaymentProviderAccountId);
+
+        builder.Entity<Payment>()
+            .HasOne(p => p.OriginPaymentProviderAccount)
+            .WithMany(a => a.OriginPayments)
+            .HasForeignKey(p => p.OriginPaymentProviderAccountId);
+
+        builder.Entity<Payment>()
+            .HasOne(p => p.PixKey)
+            .WithMany(p => p.Payments)
+            .HasForeignKey(p => p.PixKeyId);
 
         builder.Entity<PaymentProvider>()
             .HasMany(p => p.Accounts)
@@ -43,6 +61,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         builder.Entity<User>()
             .HasIndex(u => u.CPF)
             .HasDatabaseName("IX_User_CPF");
+
     }
     public override int SaveChanges()
     {

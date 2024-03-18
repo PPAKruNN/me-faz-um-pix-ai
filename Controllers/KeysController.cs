@@ -1,10 +1,8 @@
 
 using System.Security.Claims;
 using FazUmPix.DTOs;
-using FazUmPix.Models;
 using FazUmPix.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FazUmPix.Controllers;

@@ -3,6 +3,7 @@ using System;
 using FazUmPix.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace fazumpix.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240314230146_add_Payments_Entity_and_webhooks_to_PaymentProviders")]
+    partial class add_Payments_Entity_and_webhooks_to_PaymentProviders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,10 +42,7 @@ namespace fazumpix.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<long>("DestinationPaymentProviderAccountId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("OriginPaymentProviderAccountId")
+                    b.Property<long>("PaymentProviderAccountId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("PixKeyId")
@@ -57,9 +57,7 @@ namespace fazumpix.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DestinationPaymentProviderAccountId");
-
-                    b.HasIndex("OriginPaymentProviderAccountId");
+                    b.HasIndex("PaymentProviderAccountId");
 
                     b.HasIndex("PixKeyId");
 
@@ -205,27 +203,19 @@ namespace fazumpix.Migrations
 
             modelBuilder.Entity("FazUmPix.Models.Payment", b =>
                 {
-                    b.HasOne("FazUmPix.Models.PaymentProviderAccount", "DestinationPaymentProviderAccount")
-                        .WithMany("DestinationPayments")
-                        .HasForeignKey("DestinationPaymentProviderAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FazUmPix.Models.PaymentProviderAccount", "OriginPaymentProviderAccount")
-                        .WithMany("OriginPayments")
-                        .HasForeignKey("OriginPaymentProviderAccountId")
+                    b.HasOne("FazUmPix.Models.PaymentProviderAccount", "PaymentProviderAccount")
+                        .WithMany()
+                        .HasForeignKey("PaymentProviderAccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FazUmPix.Models.PixKey", "PixKey")
-                        .WithMany("Payments")
+                        .WithMany()
                         .HasForeignKey("PixKeyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("DestinationPaymentProviderAccount");
-
-                    b.Navigation("OriginPaymentProviderAccount");
+                    b.Navigation("PaymentProviderAccount");
 
                     b.Navigation("PixKey");
                 });
@@ -267,16 +257,7 @@ namespace fazumpix.Migrations
 
             modelBuilder.Entity("FazUmPix.Models.PaymentProviderAccount", b =>
                 {
-                    b.Navigation("DestinationPayments");
-
-                    b.Navigation("OriginPayments");
-
                     b.Navigation("PixKeys");
-                });
-
-            modelBuilder.Entity("FazUmPix.Models.PixKey", b =>
-                {
-                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("FazUmPix.Models.User", b =>

@@ -52,10 +52,10 @@ public class KeysService(PaymentProviderAccountRepository paymentProviderAccount
         PaymentProvider? PaymentProvider = JsonSerializer.Deserialize<PaymentProvider>(serializedPaymentProvider);
         if (PaymentProvider == null) throw new UnexpectedMissingPaymentProviderException();
 
-
         // Account Validation
+        PaymentProviderAccountIdempotenceKey accountKey = new() { Agency = dto.Account.Agency, Number = dto.Account.Number };
         PaymentProviderAccount? account =
-            await paymentProviderAccountRepository.ReadByAccountAndProvider(dto.Account, PaymentProvider);
+            await paymentProviderAccountRepository.ReadByAccountAndProvider(accountKey, PaymentProvider);
 
         AccountPolicies.CanModifyAccount(account, user);
 

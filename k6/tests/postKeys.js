@@ -2,7 +2,7 @@
 import http from "k6/http";
 import { SharedArray } from "k6/data";
 
-const url = "http://localhost:5128";
+const url = "http://localhost:5000";
 
 export const options = {
   vus: 50,

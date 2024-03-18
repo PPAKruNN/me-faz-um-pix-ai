@@ -63,6 +63,16 @@ async function run() {
   });
   generateJson("./payloads/keys.json", formatedKeys);
 
+  const paymentsData = accounts.map((a, i) => {
+    return {
+      Token: psps[i].Token,
+      Agency: a.Agency,
+      Number: a.Number,
+      Cpf: users[i].CPF,
+    };
+  });
+  generateJson("./payloads/payments.json", paymentsData);
+
   const end = new Date();
 
   db.destroy();
@@ -130,6 +140,8 @@ function generateUsersData() {
     users.push({
       CPF: faker.string.numeric({ length: 11 }),
       Name: faker.person.fullName(),
+      CreatedAt: new Date(),
+      UpdatedAt: new Date(),
     });
   }
   return users;
@@ -143,6 +155,10 @@ function generatePaymentProviderData() {
     psps.push({
       Name: faker.company.name(),
       Token: faker.string.uuid(),
+      ProcessingWebhook: "http://localhost:5039/payments/pix",
+      AcknowledgeWebhook: "http://localhost:5039/payments/pix",
+      CreatedAt: new Date(),
+      UpdatedAt: new Date(),
     });
   }
   return psps;
@@ -158,6 +174,8 @@ function generateAccounts(userIds, pspIds) {
       Number: faker.number.int({ min: 1, max: 0x7fffffff }).toString(),
       UserId: userIds[i].Id.toString(),
       PaymentProviderId: pspIds[i].Id.toString(),
+      CreatedAt: new Date(),
+      UpdatedAt: new Date(),
     });
   }
   return accounts;
@@ -198,6 +216,8 @@ function generateKeys(accountsIds) {
       Type: type,
       Value: value,
       PaymentProviderAccountId: accountsIds[i].Id.toString(),
+      CreatedAt: new Date(),
+      UpdatedAt: new Date(),
     });
   }
   return keys;

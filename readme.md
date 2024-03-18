@@ -24,10 +24,15 @@ You need installed on your machine:
 In the project root, run the following commands:
 
 ```sh
-docker compose up -d # For running the database
 dotnet ef database update # For applying the migrations
-dotnet run # For running the app
+docker compose up -d # For running the database
 ```
+And you will need to run the PixWorker and PspMock.
+PixWorker: https://github.com/PPAKruNN/fazumpix-worker
+PspMock: https://github.com/DiegoPinho/psp-mockl
+
+The api will be running on `localhost:5000`
+and RabbitMQ Managment will be running on `localhost:15672`
 
 #### How to Run Monitoring
 
@@ -41,6 +46,8 @@ Then, open Grafana on `localhost:3000`.
 
 #### How to Run Load Tests
 Navigate to the `k6` folder.
+
+If needed, change configurations variables on `seed.js` (Database entity count, urls, webhook urls)
 
 To seed the database, run:
 
@@ -58,4 +65,10 @@ To run the load tests against the `GET /keys` endpoint, run:
 
 ```sh
 npm run test:get
+```
+
+To run the load tests against the `POST /payments` endpoint, run:
+
+```sh
+npm run test:payments
 ```

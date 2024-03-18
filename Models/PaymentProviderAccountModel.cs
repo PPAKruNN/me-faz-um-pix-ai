@@ -18,4 +18,6 @@ public class PaymentProviderAccount : BaseModel
     public required User User { get; set; }
     public required PaymentProvider PaymentProvider { get; set; }
     public List<PixKey>? PixKeys { get; }
+    public List<Payment>? OriginPayments { get; }
+    public List<Payment>? DestinationPayments { get; }
 }

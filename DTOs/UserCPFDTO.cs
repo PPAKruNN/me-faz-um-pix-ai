@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FazUmPix.DTOs;
 
-public class UserCPFDTO 
+public class UserCPFDTO
 {
     [Required]
     [StringLength(11)]

@@ -11,6 +11,7 @@ public class PaymentProvider : BaseModel
     public uint Id { get; set; }
     public required string Name { get; set; }
     public required Guid Token { get; set; }
-    
+    public required string ProcessingWebhook { get; set; }
+    public required string AcknowledgeWebhook { get; set; }
     public List<PaymentProviderAccount>? Accounts { get; }
 }

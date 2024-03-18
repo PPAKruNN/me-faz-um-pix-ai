@@ -14,4 +14,5 @@ public class PixKey : BaseModel
 
     public required uint PaymentProviderAccountId { get; set; }
     public required PaymentProviderAccount Account { get; set; }
+    public List<Payment>? Payments { get; }
 }
