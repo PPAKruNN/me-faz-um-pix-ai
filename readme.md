@@ -25,7 +25,7 @@ In the project root, run the following commands:
 
 ```sh
 dotnet ef database update # For applying the migrations
-docker compose up -d # For running the database
+docker compose up -d # For running the database, rabbitmq and api
 ```
 And you will need to run the PixWorker and PspMock.
 PixWorker: https://github.com/PPAKruNN/fazumpix-worker
