@@ -23,9 +23,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Services
 builder.Services.AddScoped<KeysService>();
 builder.Services.AddScoped<PaymentsService>();
-builder.Services.AddScoped<PaymentsProcessingService>();
+builder.Services.AddScoped<QueueService>();
 
-builder.Services.AddSingleton<PaymentsProcessingService>();
+builder.Services.AddSingleton<QueueService>();
 // Pelo que pesquisei, deve-se ter apenas 1 conexão por app.
 // Logo, já deixei como singleton pra não criar 1 conexão POR REQUEST.
 

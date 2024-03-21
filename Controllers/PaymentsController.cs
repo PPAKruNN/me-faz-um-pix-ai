@@ -60,4 +60,22 @@ public class PaymentsController(PaymentsService paymentsService) : ControllerBas
         return NoContent();
     }
 
+    [HttpPost]
+    [Route("Concilliation")]
+    public async Task<IActionResult> Concilliation([FromBody] ConcilliationInputDTO dto)
+    {
+
+        Guid tokenStr = Guid.Parse(HttpContext.User.Claims.First(c => c.Type == ClaimTypes.Authentication).Value);
+        string paymentProviderSerialized = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.UserData).Value;
+
+        TokenDTO tokenDTO = new()
+        {
+            Token = tokenStr
+        };
+
+        await _paymentsService.Concilliation(dto);
+
+        return NoContent();
+    }
+
 }

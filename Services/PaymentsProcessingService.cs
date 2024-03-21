@@ -7,16 +7,27 @@ using FazUmPix.DTOs;
 using FazUmPix.Models;
 using RabbitMQ.Client;
 
-public class PaymentsProcessingService
+public class QueueService
 {
-    public PaymentsProcessingService()
+    public QueueService()
     {
         _factory = new ConnectionFactory() { HostName = "localhost", UserName = "rabbit", Password = "mq" };
         _connection = _factory.CreateConnection();
-        _channel = _connection.CreateModel();
-        _channel.QueueDeclare(
+
+        _paymentsChannel = _connection.CreateModel();
+        _concilliationsChannel = _connection.CreateModel();
+
+        _paymentsChannel.QueueDeclare(
             queue: "payments",
-            durable: false,
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null
+        );
+
+        _concilliationsChannel.QueueDeclare(
+            queue: "conciliations",
+            durable: true,
             exclusive: false,
             autoDelete: false,
             arguments: null
@@ -26,20 +37,35 @@ public class PaymentsProcessingService
 
     private readonly ConnectionFactory _factory;
     private readonly IConnection _connection;
-    private readonly IModel _channel;
+    private readonly IModel _paymentsChannel;
+    private readonly IModel _concilliationsChannel;
 
-    public void Process(ProcessPaymentDTO dto)
+    public void PublishPayment(ProcessPaymentDTO dto)
     {
         string message = JsonSerializer.Serialize(dto);
 
-        _channel.BasicPublish(
+        _paymentsChannel.BasicPublish(
             exchange: String.Empty,
             routingKey: "payments",
             basicProperties: null,
             body: Encoding.UTF8.GetBytes(message)
         );
 
-        Console.WriteLine(" [x] Sent message to consumer!");
+        Console.WriteLine("[x] Payment published to consumer!");
+    }
+
+    public void PublishConcilliation(ConcilliationInputDTO dto)
+    {
+        string message = JsonSerializer.Serialize(dto);
+
+        _paymentsChannel.BasicPublish(
+            exchange: String.Empty,
+            routingKey: "concilliations",
+            basicProperties: null,
+            body: Encoding.UTF8.GetBytes(message)
+        );
+
+        Console.WriteLine("[x] Concilliation published to consumer!");
     }
 
 }

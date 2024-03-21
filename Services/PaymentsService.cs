@@ -7,10 +7,10 @@ using FazUmPix.Repositories;
 
 namespace FazUmPix.Services;
 
-public class PaymentsService(PaymentsRepository paymentsRepository, PaymentsProcessingService paymentProcessingService, PaymentProviderAccountRepository paymentProviderAccountRepository, KeysRepository keysRepository)
+public class PaymentsService(PaymentsRepository paymentsRepository, QueueService queueService, PaymentProviderAccountRepository paymentProviderAccountRepository, KeysRepository keysRepository)
 {
     private readonly PaymentsRepository _paymentsRepository = paymentsRepository;
-    private readonly PaymentsProcessingService _paymentProcessingService = paymentProcessingService;
+    private readonly QueueService _queueService = queueService;
     private readonly PaymentProviderAccountRepository _paymentProviderAccountRepository = paymentProviderAccountRepository;
     private readonly KeysRepository _keysRepository = keysRepository;
     public async Task<Payment> CreatePayment(CreatePaymentInputDTO dto, TokenDTO token, string paymentProviderSerialized)
@@ -70,7 +70,7 @@ public class PaymentsService(PaymentsRepository paymentsRepository, PaymentsProc
             PaymentId = payment.Id,
             Data = dto
         };
-        _paymentProcessingService.Process(processPaymentDTO);
+        _queueService.PublishPayment(processPaymentDTO);
 
         // Return the new payment data to the controller
         return payment;
@@ -83,6 +83,13 @@ public class PaymentsService(PaymentsRepository paymentsRepository, PaymentsProc
 
         payment.Status = dto.Status;
         await _paymentsRepository.Update(payment);
+    }
+
+    public async Task Concilliation(ConcilliationInputDTO dto)
+    {
+        // Process the file and update the payments
+        _queueService.PublishConcilliation(dto);
+
     }
 
 }
