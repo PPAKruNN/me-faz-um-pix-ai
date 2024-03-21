@@ -6,7 +6,7 @@ const url = "http://localhost:5000";
 
 export const options = {
   vus: 50,
-  duration: "1m",
+  duration: "30s",
 };
 
 console.log("Loading data...");

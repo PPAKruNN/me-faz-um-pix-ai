@@ -56,7 +56,7 @@ async function run() {
   saveToFile("./payloads/accounts.json", users, psps, accounts);
 
   const keys = generateKeys(accountsIds);
-  await save(PIXKEYS_TABLE, keys);
+  const keysIds = await save(PIXKEYS_TABLE, keys);
 
   const formatedKeys = keys.map((key, index) => {
     return { type: key.Type, value: key.Value, token: psps[index].Token };
@@ -71,7 +71,27 @@ async function run() {
       Cpf: users[i].CPF,
     };
   });
+
+  const paymentsDB = [];
+  accounts.forEach((a, i) => {
+    if (i === 0) return;
+
+    paymentsDB.push({
+      Status: faker.helpers.arrayElement([
+        "PROCESSING",
+        "ACCEPTED",
+        "REJECTED",
+      ]),
+      Amount: faker.number.int({ min: 1, max: 10000 }),
+      Description: faker.helpers.arrayElement([faker.lorem.sentence(), null]),
+      PixKeyId: keysIds[i].Id,
+      OriginPaymentProviderAccountId: accountsIds[0].Id,
+      DestinationPaymentProviderAccountId: accountsIds[i].Id,
+    });
+  });
+
   generateJson("./payloads/payments.json", paymentsData);
+  await save("Payment", paymentsDB);
 
   const end = new Date();
 

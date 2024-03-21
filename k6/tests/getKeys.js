@@ -4,8 +4,8 @@ import { SharedArray } from "k6/data";
 const url = "http://localhost:5000";
 
 export const options = {
-  vus: 10,
-  duration: "10s",
+  vus: 50,
+  duration: "30s",
 };
 
 console.log("Loading keys...");
