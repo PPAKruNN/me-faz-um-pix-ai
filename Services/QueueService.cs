@@ -54,7 +54,7 @@ public class QueueService
         Console.WriteLine("[x] Payment published to consumer!");
     }
 
-    public void PublishConcilliation(ConcilliationInputDTO dto)
+    public void PublishConcilliation(QueueConcilliationInputDTO dto)
     {
         string message = JsonSerializer.Serialize(dto);
 
