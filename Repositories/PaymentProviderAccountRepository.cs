@@ -8,7 +8,6 @@ namespace FazUmPix.Repositories;
 public class PaymentProviderAccountRepository(AppDbContext context)
 {
     private readonly AppDbContext _context = context;
-
     public async Task<PaymentProviderAccount?> ReadByAccountAndProvider(PaymentProviderAccountIdempotenceKey account, PaymentProvider psp)
     {
         var accountNumber = int.Parse(account.Number);
@@ -37,7 +36,7 @@ public class PaymentProviderAccountRepository(AppDbContext context)
             };
 
         await _context.PaymentProviderAccount.AddAsync(account);
-        await _context.SaveChangesAsync();
+        // await _context.SaveChangesAsync();
 
         return account;
     }
@@ -46,7 +45,7 @@ public class PaymentProviderAccountRepository(AppDbContext context)
     {
         PaymentProviderAccount? paymentProviderAccount = await _context.PaymentProviderAccount
             .Where(p => p.PixKeys != null
-                    && p.PixKeys.Any(p => p.Value == key))
+                    && p.PixKeys.Any(pixKey => pixKey.Value == key))
             .FirstOrDefaultAsync(a => a.PixKeys != null && a.PixKeys.Any(p => p.Value == key));
 
         return paymentProviderAccount;

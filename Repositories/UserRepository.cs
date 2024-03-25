@@ -6,10 +6,11 @@ using Microsoft.EntityFrameworkCore;
 namespace FazUmPix.Repositories;
 public class UserRepository(AppDbContext context)
 {
+    private readonly AppDbContext _context = context;
     public async Task<User?> ReadByCpf(string cpf)
     {
         var user =
-            await context.User
+            await _context.User
                 .Where(u => u.CPF == cpf)
                 .FirstOrDefaultAsync();
 

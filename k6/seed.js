@@ -11,21 +11,24 @@ const db = knex({
 });
 
 // Records number.
+const defaultCount = 1000000;
+const USERS = defaultCount;
+const PAYMENTPROVIDER = defaultCount;
+const ACCOUNTS = defaultCount;
+const PIXKEYS = defaultCount;
 
-const same = 1000000;
-
-const USERS = same;
-const PAYMENTPROVIDER = same;
-const ACCOUNTS = same;
-const PIXKEYS = same;
-
-const CLEARDB = true;
+const CLEARDB = false;
 
 // Tables name:
 const USER_TABLE = "User";
 const PAYMENTPROVIDER_TABLE = "PaymentProvider";
 const ACCOUNTS_TABLE = "PaymentProviderAccount";
 const PIXKEYS_TABLE = "PixKey";
+const PAYMENT_TABLE = "Payment";
+
+// Acknowledge and Processing Webhooks
+const ProcessingWebhook = "http://localhost:5039/payments/pix"
+const AcknowledgeWebhook = "http://localhost:5040/payments/pix"
 
 run();
 
@@ -63,6 +66,18 @@ async function run() {
   });
   generateJson("./payloads/keys.json", formatedKeys);
 
+  await generatePayments(accounts, accountsIds, keysIds, psps, users);
+
+  const end = new Date();
+
+  db.destroy();
+
+  console.log("Done!");
+  console.log("Finished in %d seconds", (end - start) / 1000);
+}
+
+async function generatePayments(accounts, accountsIds, keysIds, psps, users) {
+
   const paymentsData = accounts.map((a, i) => {
     return {
       Token: psps[i].Token,
@@ -73,7 +88,7 @@ async function run() {
   });
 
   const paymentsDB = [];
-  accounts.forEach((a, i) => {
+  accountsIds.forEach((a, i) => {
     if (i === 0) return;
 
     paymentsDB.push({
@@ -86,19 +101,20 @@ async function run() {
       Description: faker.helpers.arrayElement([faker.lorem.sentence(), null]),
       PixKeyId: keysIds[i].Id,
       OriginPaymentProviderAccountId: accountsIds[0].Id,
-      DestinationPaymentProviderAccountId: accountsIds[i].Id,
+      DestinationPaymentProviderAccountId: a.Id,
+      CreatedAt: new Date(),
+      UpdatedAt: new Date(),
     });
   });
 
   generateJson("./payloads/payments.json", paymentsData);
-  await save("Payment", paymentsDB);
+  const paymentIds = await save(PAYMENT_TABLE, paymentsDB);
 
-  const end = new Date();
-
-  db.destroy();
-
-  console.log("Done!");
-  console.log("Finished in %d seconds", (end - start) / 1000);
+  const paymentFile = [];
+  paymentIds.forEach((id, i) => {
+    paymentFile.push({ Id: id, status: paymentsDB[i].Status });
+  });
+  generateNDJson("./payloads/pspPayments.json", paymentFile);
 }
 
 function saveToFile(filepath, users, psps, accounts) {
@@ -175,8 +191,8 @@ function generatePaymentProviderData() {
     psps.push({
       Name: faker.company.name(),
       Token: faker.string.uuid(),
-      ProcessingWebhook: "http://localhost:5039/payments/pix",
-      AcknowledgeWebhook: "http://localhost:5039/payments/pix",
+      ProcessingWebhook,
+      AcknowledgeWebhook,
       CreatedAt: new Date(),
       UpdatedAt: new Date(),
     });
@@ -258,4 +274,20 @@ function generateJson(filepath, data) {
   console.log("Saving to: ", filepath);
 
   fs.writeFileSync(filepath, JSON.stringify(data));
+}
+
+function generateNDJson(filepath, data) {
+  if (fs.existsSync(filepath)) {
+    fs.unlinkSync(filepath);
+  }
+
+  console.log("Generating NDJSON file");
+  console.log("Saving to: ", filepath);
+
+  const file = fs.createWriteStream(filepath);
+  data.forEach((d) => {
+    file.write(JSON.stringify(d) + "\n");
+  });
+
+  file.close();
 }

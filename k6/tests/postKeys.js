@@ -6,7 +6,7 @@ const url = "http://localhost:5000";
 
 export const options = {
   vus: 50,
-  duration: "30s",
+  duration: "1m",
 };
 
 console.log("Loading data...");
@@ -15,6 +15,8 @@ const data = new SharedArray("users", function () {
   return result;
 });
 console.log("Finished loading...");
+
+http.setResponseCallback(http.expectedStatuses({ min: 200, max: 422 }));
 
 export default function () {
   const index = Math.floor(Math.random() * data.length);
@@ -27,6 +29,8 @@ export default function () {
     "Content-Type": "application/json",
     Authorization: "Bearer " + d.token,
   };
+
+
 
   http.post(`${url}/keys`, body, { headers });
 }
