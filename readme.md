@@ -14,8 +14,6 @@ You need installed on your machine:
 - Grafana k6 (For load testing).
 
 ### Notes
-
-- Note that `network_mode` is set for all containers as `host`. This configuration helped me to run the containers but can cause issues in other environments. If you have any issues, this may be a cause.
 - Verify if the database environment variables are correctly set. If not, modify them as needed.
 - Copy the `.env.example` to `.env` and change the database URL if necessary
 
@@ -29,9 +27,9 @@ dotnet ef database update # For applying the migrations
 ```
 
 And you will need to run the PixWorker, ConcilliationWorker and PspMock.
-PixWorker: https://github.com/PPAKruNN/fazumpix-worker
-ConcilliationsWorker: https://github.com/PPAKruNN/fazumpix-concilliations-worker
-PspMock: https://github.com/PPAKruNN/psp-mock
+- PixWorker: https://github.com/PPAKruNN/fazumpix-worker
+- ConcilliationsWorker: https://github.com/PPAKruNN/fazumpix-concilliations-worker
+- PspMock: https://github.com/PPAKruNN/psp-mock
 
 The api will be running on `localhost:5000`
 and RabbitMQ Managment will be running on `localhost:15672`
