@@ -19,17 +19,19 @@ You need installed on your machine:
 - Verify if the database environment variables are correctly set. If not, modify them as needed.
 - Copy the `.env.example` to `.env` and change the database URL if necessary
 
-### Running the Project
+### Running the Project first time with docker:
 
 In the project root, run the following commands:
 
 ```sh
-dotnet ef database update # For applying the migrations
 docker compose up -d # For running the database, rabbitmq and api
+dotnet ef database update # For applying the migrations
 ```
-And you will need to run the PixWorker and PspMock.
+
+And you will need to run the PixWorker, ConcilliationWorker and PspMock.
 PixWorker: https://github.com/PPAKruNN/fazumpix-worker
-PspMock: https://github.com/DiegoPinho/psp-mockl
+ConcilliationsWorker: https://github.com/PPAKruNN/fazumpix-concilliations-worker
+PspMock: https://github.com/PPAKruNN/psp-mock
 
 The api will be running on `localhost:5000`
 and RabbitMQ Managment will be running on `localhost:15672`
@@ -45,6 +47,7 @@ docker compose up -d
 Then, open Grafana on `localhost:3000`.
 
 #### How to Run Load Tests
+
 Navigate to the `k6` folder.
 
 If needed, change configurations variables on `seed.js` (Database entity count, urls, webhook urls)

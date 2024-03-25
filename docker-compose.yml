@@ -2,7 +2,6 @@ volumes:
   databasevolume:
   rabbitmqvolume:
 
-
 networks:
   fazumpix:
     name: fazumpix
