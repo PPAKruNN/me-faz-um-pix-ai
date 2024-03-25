@@ -75,7 +75,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         return base.SaveChangesAsync(cancellationToken);
     }
 
-
     private void AddTimestamps()
     {
         var entities = ChangeTracker.Entries()

@@ -37,16 +37,17 @@ public class PaymentProviderAccountRepository(AppDbContext context)
 
         await _context.PaymentProviderAccount.AddAsync(account);
         // await _context.SaveChangesAsync();
+        // Dont save changes here, only save when the PixKey is created.
 
         return account;
     }
 
-    public async Task<PaymentProviderAccount?> ReadByPixKey(string key)
+    public async Task<PaymentProviderAccount?> ReadByPixKey(PixKeyDTO key)
     {
-        PaymentProviderAccount? paymentProviderAccount = await _context.PaymentProviderAccount
-            .Where(p => p.PixKeys != null
-                    && p.PixKeys.Any(pixKey => pixKey.Value == key))
-            .FirstOrDefaultAsync(a => a.PixKeys != null && a.PixKeys.Any(p => p.Value == key));
+        PaymentProviderAccount? paymentProviderAccount = await _context.PixKey
+            .Where(p => p.Value == key.Value)
+            .Select(p => p.Account)
+            .FirstOrDefaultAsync();
 
         return paymentProviderAccount;
     }

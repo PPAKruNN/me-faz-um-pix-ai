@@ -11,12 +11,12 @@ public class KeysRepository(AppDbContext context)
 
     public async Task<PixKey?> Read(string type, string value)
     {
-        var Key =
+        var key =
         await _context.PixKey
             .Where(k => k.Type == type && k.Value == value)
             .FirstOrDefaultAsync();
 
-        return Key;
+        return key;
     }
 
     public async Task<int> CountByUser(uint userId)
@@ -40,7 +40,7 @@ public class KeysRepository(AppDbContext context)
 
     public async Task<PixKey?> ReadByKeyAndProviderIncludingBankAndUser(Guid paymentProviderToken, string type, string value)
     {
-        var Key =
+        var key =
         await _context.PixKey
             .Where(k => k.Type == type
             && k.Value == value
@@ -50,7 +50,7 @@ public class KeysRepository(AppDbContext context)
             .Include(k => k.Account.User)
             .FirstOrDefaultAsync();
 
-        return Key;
+        return key;
     }
 
     public async Task<CreateKeyOutputDTO> Create(CreateKeyInputDTO dto, PaymentProvider psp, User user, PaymentProviderAccount account)

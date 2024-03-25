@@ -1,6 +1,6 @@
 
-using System.Security.Claims;
 using FazUmPix.DTOs;
+using FazUmPix.Models;
 using FazUmPix.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,16 +11,14 @@ namespace FazUmPix.Controllers;
 [Route("[controller]")]
 public class KeysController(KeysService keysService) : ControllerBase
 {
+    private readonly KeysService _keysService = keysService;
+
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateKeyInputDTO dto)
     {
-        Guid tokenStr = Guid.Parse(HttpContext.User.Claims.First(c => c.Type == ClaimTypes.Authentication).Value);
-        string paymentProviderSerialized = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.UserData).Value;
-
-        TokenDTO token = new TokenDTO { Token = tokenStr };
-
-        CreateKeyOutputDTO key = await keysService.CreateKey(dto, token, paymentProviderSerialized);
+        PaymentProvider paymentProvider = AuthReader.GetPaymentProvider(HttpContext);
+        CreateKeyOutputDTO key = await _keysService.CreateKey(dto, paymentProvider);
 
         return CreatedAtAction(null, null, key);
     }
@@ -29,13 +27,10 @@ public class KeysController(KeysService keysService) : ControllerBase
     [Authorize]
     public async Task<IActionResult> Read([FromRoute] ReadKeyInputDTO dto)
     {
-        Guid tokenStr = Guid.Parse(HttpContext.User.Claims.First(c => c.Type == ClaimTypes.Authentication).Value);
-        string paymentProviderSerialized = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.UserData).Value;
-
-        TokenDTO token = new TokenDTO { Token = tokenStr };
-
-        ReadKeyOutputDTO key = await keysService.ReadKey(dto, token, paymentProviderSerialized);
+        TokenDTO token = AuthReader.GetToken(HttpContext);
+        ReadKeyOutputDTO key = await _keysService.ReadKey(dto, token);
 
         return Ok(key);
     }
+
 }

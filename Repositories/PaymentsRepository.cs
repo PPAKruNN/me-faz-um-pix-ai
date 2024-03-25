@@ -2,7 +2,6 @@ using FazUmPix.Data;
 using FazUmPix.DTOs;
 using FazUmPix.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace FazUmPix.Repositories;
 

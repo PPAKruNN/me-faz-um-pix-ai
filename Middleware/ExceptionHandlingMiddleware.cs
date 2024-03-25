@@ -23,7 +23,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionH
 
   private async Task HandleExceptionAsync(HttpContext context, Exception exception)
   {
-    _logger.LogError(exception, "An unexpected error occurred.");
+    _logger.LogInformation(exception, "An exception ocurred!");
 
     ExceptionResponse response = exception switch
     {
@@ -40,6 +40,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionH
       PaymentProviderAccountNotFoundException => new ExceptionResponse(HttpStatusCode.NotFound, exception.Message),
       PaymentRepeatedException => new ExceptionResponse(HttpStatusCode.Conflict, exception.Message),
       PaymentNotFoundException => new ExceptionResponse(HttpStatusCode.NotFound, exception.Message),
+      PaymentProviderNotFoundException => new ExceptionResponse(HttpStatusCode.NotFound, exception.Message),
 
       _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "Internal server error. Please retry later.")
     };

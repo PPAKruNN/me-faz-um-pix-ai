@@ -1,7 +1,7 @@
 
 namespace FazUmPix.DTOs;
 
-public class Destiny
+public class DestinyDTO
 {
     public required PixKeyDTO Key { get; set; }
 }

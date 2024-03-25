@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Security;
 using System.Text.Json;
 using FazUmPix.DTOs;
 using FazUmPix.Exceptions;
@@ -13,31 +15,31 @@ public class PaymentsService(PaymentsRepository paymentsRepository, QueueService
     private readonly QueueService _queueService = queueService;
     private readonly PaymentProviderAccountRepository _paymentProviderAccountRepository = paymentProviderAccountRepository;
     private readonly KeysRepository _keysRepository = keysRepository;
-    public async Task<Payment> CreatePayment(CreatePaymentInputDTO dto, TokenDTO token, string paymentProviderSerialized)
+    private async Task<PaymentProviderAccount> GetDestinyAccount(DestinyDTO destiny)
     {
-        // Test by searching for the account (Using ENUMERABLE on the query. Maybe slow?)
-        PaymentProviderAccount? destinyAccount = await _paymentProviderAccountRepository.ReadByPixKey(dto.Destiny.Key.Value);
-        if (destinyAccount == null) throw new PaymentProviderAccountNotFoundException("Destination account not found!");
+        PaymentProviderAccount? paymentProviderAccount = await _paymentProviderAccountRepository.ReadByPixKey(destiny.Key);
+        if (paymentProviderAccount is null) throw new PaymentProviderAccountNotFoundException("Destination account not found!");
 
-        PixKey? pixKey = await _keysRepository.Read(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
-        if (pixKey == null) throw new PixKeyNotFoundException("Destination pix key not found!");
-
-        PaymentProvider? paymentProvider = JsonSerializer.Deserialize<PaymentProvider>(paymentProviderSerialized);
-        if (paymentProvider == null) throw new UnexpectedMissingPaymentProviderException();
-
-        PaymentProviderAccountIdempotenceKey accountKey = new() { Agency = dto.Origin.Account.Agency, Number = dto.Origin.Account.Number };
+        return paymentProviderAccount;
+    }
+    private async Task<PaymentProviderAccount> GetOriginAccount(PaymentProvider paymentProvider, OriginDTO origin)
+    {
+        PaymentProviderAccountIdempotenceKey accountKey = new() { Agency = origin.Account.Agency, Number = origin.Account.Number };
         PaymentProviderAccount? originAccount = await _paymentProviderAccountRepository.ReadByAccountAndProvider(accountKey, paymentProvider);
-        if (originAccount == null) throw new PaymentProviderAccountNotFoundException("Origin account not found!");
 
-        // Check if user is transfering from x to x.
-        var canTransfer = PaymentsPolicies.AccountCannotTransferToItself(originAccount, destinyAccount);
-        if (!canTransfer) throw new AccountCannotTransferToItselfException("Account cannot transfer to itself.");
+        if (originAccount is null) throw new PaymentProviderAccountNotFoundException("Origin account not found!");
 
-        // Verify if payment is not a duplicate
+        return originAccount;
+    }
+    private async Task<PixKey> GetDestinyPixKey(PixKeyDTO key)
+    {
+        PixKey? pixKey = await _keysRepository.Read(key.Type, key.Value);
+        if (pixKey is null) throw new PixKeyNotFoundException("Destination pix key not found!");
 
-        // Formas de verificacao de tempo:
-        // - Pesquisar pela chave e criar uma politica para verificar a data dentro da API.
-        // - Filtrar diretamente no banco pela data (Escolhi essa!).
+        return pixKey;
+    }
+    private async Task VerifyIfPaymentIsDuplicate(CreatePaymentInputDTO dto)
+    {
         PaymentIdempotenceKey paymentIdempotenceKey = new()
         {
             Amount = dto.Amount,
@@ -53,29 +55,52 @@ public class PaymentsService(PaymentsRepository paymentsRepository, QueueService
 
         bool isRepeatedPayment = await _paymentsRepository.CheckForDuplicate(paymentIdempotenceKey, dateCap);
         if (isRepeatedPayment) throw new PaymentRepeatedException("Payment already exists! Maybe you are trying to pay the same thing twice?");
+    }
 
-        // Test by searching for the account (Using TWO QUERIES. Maybe faster? It does not use ENUMERABLE 
-        // (Should be faster with a large amount of keys on a single PaymentProviderAccount which is a common scenario))
-        // PixKey pixKey = await _appDbContext.PixKey.FirstOrDefaultAsync(p => p.Value == dto.Destiny.Key.Value);
-        // PaymentProviderAccount paymentProviderAccount = await _appDbContext.PaymentProviderAccount.FirstOrDefaultAsync(p => p.Id == pixKey.PaymentProviderAccountId && p.PaymentProvider.Token == token.Token);
+    public async Task<CreatePaymentOutputDTO> CreatePayment(CreatePaymentInputDTO dto, PaymentProvider paymentProvider)
+    {
+        var destinyAccount = await GetDestinyAccount(dto.Destiny);
+        var pixKey = await GetDestinyPixKey(dto.Destiny.Key);
+        var originAccount = await GetOriginAccount(paymentProvider, dto.Origin);
 
-        // Now Create the payment on DB as started.
+        // Check if user is transfering from x to x.
+        var canTransfer = PaymentsPolicies.AccountCannotTransferToItself(originAccount, destinyAccount);
+        if (!canTransfer) throw new AccountCannotTransferToItselfException("Account cannot transfer to itself.");
+
+        await VerifyIfPaymentIsDuplicate(dto);
+
+        // Now the payment.
         Payment payment = await _paymentsRepository.CreatePayment(dto, destinyAccount, originAccount, pixKey);
-
-        // Now process the payment
-        ProcessPaymentDTO processPaymentDTO = new()
+        _queueService.PublishPayment(new ProcessPaymentDTO
         {
             ProcessURL = paymentProvider.ProcessingWebhook,
             AcknowledgeURL = paymentProvider.AcknowledgeWebhook,
             PaymentId = payment.Id,
             Data = dto
+        });
+
+        return new CreatePaymentOutputDTO
+        {
+            Id = payment.Id,
+            Status = payment.Status,
+            Amount = payment.Amount,
+            Description = payment.Description,
+            Destination = new DestinationPaymentProviderAccountDTO
+            {
+                Agency = payment.DestinationPaymentProviderAccount.Agency,
+                Number = payment.DestinationPaymentProviderAccount.Number,
+                PaymentProviderToken = paymentProvider.Token
+            },
+            PixKey = new PixKeyDTO
+            {
+                Value = payment.PixKey.Value,
+                Type = payment.PixKey.Type
+            },
+            CreatedAt = payment.CreatedAt,
+            UpdatedAt = payment.UpdatedAt
         };
-        _queueService.PublishPayment(processPaymentDTO);
-
-        // Return the new payment data to the controller
-        return payment;
-
     }
+
     public async Task UpdatePayment(UpdatePaymentInputDTO dto, RouteIdDTO idDTO)
     {
         Payment? payment = await _paymentsRepository.Read(idDTO.Id);
@@ -85,11 +110,18 @@ public class PaymentsService(PaymentsRepository paymentsRepository, QueueService
         await _paymentsRepository.Update(payment);
     }
 
-    public async Task Concilliation(ConcilliationInputDTO dto)
+    public async Task CreatePaymentsConcilliation(ConcilliationInputDTO dto, PaymentProvider paymentProvider)
     {
-        // Process the file and update the payments
-        _queueService.PublishConcilliation(dto);
+        QueueConcilliationInputDTO queueDTO = new()
+        {
+            Date = dto.Date,
+            File = dto.File,
+            Postback = dto.Postback,
+            PaymentProviderId = (int)paymentProvider.Id
+        };
 
+        // Process the file and update the payments
+        _queueService.PublishConcilliation(queueDTO);
     }
 
 }

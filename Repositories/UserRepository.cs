@@ -1,5 +1,6 @@
 
 using FazUmPix.Data;
+using FazUmPix.Exceptions;
 using FazUmPix.Models;
 using Microsoft.EntityFrameworkCore;
 

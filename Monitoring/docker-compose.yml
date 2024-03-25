@@ -38,7 +38,7 @@ services:
     ports:
       - 9187:9187
     environment:
-      - DATA_SOURCE_URI=database:5432/fazumpix?sslmode=disable
+      - DATA_SOURCE_URI=postgres:5432/fazumpix?sslmode=disable
       - DATA_SOURCE_USER=postgres
       - DATA_SOURCE_PASS=postgres
 
